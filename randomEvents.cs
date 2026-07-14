@@ -68,29 +68,27 @@ public class randomEvents : MonoBehaviour{
 	
 	private ushort changerReqStat(ushort ReqStat) {
 		switch(ReqStat) {
-			case 0: return stats.elegance; break;
-			case 2: return stats.grace; break;
-			case 4: return stats.glamor; break;
-			case 6: return stats.negotiation; break;
+			case 0: return stats.elegance;
+			case 2: return stats.grace;
+			case 4: return stats.glamor;
+			case 6: return stats.negotiation;
 				
-			case 8: return stats.agality; break;
-			case 10: return stats.athletics; break;
-			case 12: return stats.strength; break;
-			case 14: return stats.craftsmanship; break;
+			case 8: return stats.agality;
+			case 10: return stats.athletics;
+			case 12: return stats.strength;
+			case 14: return stats.craftsmanship;
 				
-			case 1: return stats.stategy; break;
-			case 3: return stats.science; break;
-			case 5: return stats.history; break;
-			case 7: return stats.math;break;
+			case 1: return stats.stategy;
+			case 3: return stats.science;
+			case 5: return stats.history;
+			case 7: return stats.math;
 				
-			case 9: return stats.morality;break;
-			case 11: return stats.theology;break;
-			case 13: return stats.sin;break;
-			case 15: return stats.peity;break;
+			case 9: return stats.morality;
+			case 11: return stats.theology;
+			case 13: return stats.sin;
+			case 15: return stats.peity;
 			
-			default:
-			return 0;
-			break;
+			default: return 0;
 		}
 	}
 	
