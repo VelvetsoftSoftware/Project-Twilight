@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.IO;
 
 public class bitpacker : MonoBehaviour{
 	
@@ -54,6 +55,16 @@ public class bitpacker : MonoBehaviour{
 	public short moneyUnpacker(jobs.Activity job) {
 		uint temp = job.PackedStats;
 		return (short)((temp >> 20) & 0xFF);
+	}
+	
+	public void savepacker(BinaryWriter writer, ushort stat1, ushort stat2) {/*this is only ran with ushort stats*/
+		byte b0 = (byte)(stat1 & 0xFF);
+		byte b1 = (byte)(((stat1 >> 8) & 0x0F) | ((stat2 & 0x0F) << 4));
+		byte b2 = (byte)((stat2 >> 4) & 0xFF);
+		
+		writer.Write(b0);
+		writer.Write(b1);
+		writer.Write(b2);
 	}
 	
 }
