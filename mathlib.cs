@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine;
 
 public static class mathlib {
 	
@@ -8,6 +9,9 @@ public static class mathlib {
 	the last two(or 10-20 and then 0-9) are actually the tenth and hundrith
 	and not the arabic numbers or tens
 	*/
+	
+	//(int)mathlib.Remainder((uint) , )
+	//(int)mathlib.Divider((uint) , )
 
     // 16 bit
     // precomputed: round(65536 / ((i << 7) + 64))
@@ -21,6 +25,32 @@ public static class mathlib {
         512,  509,  506,  504,  501,  499,  496,  494,  491,  489,  486,  484,  482,  479,  477,  475,
         472,  470,  468,  466,  463,  461,  459,  457,  455,  453,  451,  449,  447,  445,  443,  441
     };
+	
+	// Bit length lookup for 8-bit values (0 = 0 bits)
+	private static readonly byte[] BitLengthTable = new byte[256] {
+		0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,
+		5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+		6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+		6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+		7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+		7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+		7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+		7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+		8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+	};
+	
+	public static uint Remainder(uint numerator, uint divider) {
+		uint quotient = Divider(numerator, divider);
+        uint remainder = numerator - (quotient * divider);
+		return remainder;
+	}
     
 	//this is for dividing decimals particulary those that that have larger dividers then numerators 
     public static uint DecimalFixedPointDivider(uint numerator, uint divider) {
@@ -115,13 +145,22 @@ public static class mathlib {
     }
 
     // Helper implementation for finding leading bit length (De Bruijn or simple loop)
-    private static int BitLength(uint value) {
-        if (value == 0) return 0;
-        int length = 0;
-        while (value > 0) {
-            length++;
-            value >>= 1;
-        }
-        return length;
-    }
+	private static int BitLength(uint value) {
+		if (value == 0) 
+			return 0;
+
+		if (value >= 0x10000) {
+			if (value >= 0x1000000) {
+				return 24 + BitLengthTable[(byte)(value >> 24)];
+			} else {
+				return 16 + BitLengthTable[(byte)(value >> 16)];
+			}
+		} else {
+			if (value >= 0x100) {
+				return 8 + BitLengthTable[(byte)(value >> 8)];
+			} else {
+				return BitLengthTable[(byte)value];
+			}
+		}
+	}
 }
