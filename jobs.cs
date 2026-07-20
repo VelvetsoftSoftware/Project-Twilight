@@ -7,12 +7,12 @@ public class jobs : MonoBehaviour{
 	
 	public class Activity{
 		//positive for gaining money, negative for loosing money
-		public float proficiency;
+		public byte proficiency;
 		private readonly uint packedStatIdentifier, packedStats;
 		private readonly byte activityType;
 		public AnimationClip jobAnimation, failureAnimation;
 
-		public Activity(uint packedStats, float proficiency, uint packedStatIdentifier, byte activityType){
+		public Activity(uint packedStats, byte proficiency, uint packedStatIdentifier, byte activityType){
 			this.packedStats = packedStats;
 			this.proficiency = proficiency;
 			this.packedStatIdentifier = packedStatIdentifier;
@@ -21,7 +21,7 @@ public class jobs : MonoBehaviour{
 
 		// Public properties to retrieve the values
 		public uint PackedStats => packedStats;
-		public float Proficiency => proficiency;
+		public byte Proficiency => proficiency;
 		public uint PackedStatIdentifier => packedStatIdentifier;
 		public byte ActivityType => activityType;
 	}
@@ -53,7 +53,7 @@ public class jobs : MonoBehaviour{
 	
 		/*age, cost(money made), peity, morality, null, null, sin, null, null, null, stress*/
 		0x00150402,
-		/*proficiency*/ 0.0f,
+		/*proficiency*/ 0,
 		/*pack stats identify*/ 0xF900D000,
 		/*type of activity*/ 0x00000000
 	);
@@ -65,7 +65,7 @@ public class jobs : MonoBehaviour{
 	
 	/*age, cost(money made), strength, null, null, null, elegance, grace, null, null, stress*/
 	0xA0010502,
-	/*proficiency*/ 0.0f,
+	/*proficiency*/ 0,
 	/*pack stats identify*/ 0x02000003, 
 	/*type of activity*/0b0000
 	);
@@ -73,7 +73,7 @@ public class jobs : MonoBehaviour{
 	public Activity babySitter = new Activity(
 	/*age, cost(money made), strength, null, null, null, elegance, grace, null, null, stress*/
 	0xA0010502,
-	/*proficiency*/ 0.0f,
+	/*proficiency*/ 0,
 	/*pack stats identify*/ 0x0200000C, 
 	/*type of activity*/0x0000
 	);
@@ -94,7 +94,7 @@ public class jobs : MonoBehaviour{
 
 	/*age, cost(money made), strength, null, null, null, elegance, grace, null, null, stress*/
 	0xA0210502,
-	/*proficiency*/ 0.0f,
+	/*proficiency*/ 0,
 	/*pack stats identify*/ 0x002000C, 
 	/*type of activity*/0b0000
 	);
@@ -134,9 +134,4 @@ public class jobs : MonoBehaviour{
 //	/*null*/ 0, /*null*/ 0, /*proficiency*/ 0,
 //	/*pack stats identify*/ 0x00000000, /*type of activity*/0x0010
 //	);
-	
-	
-	public void SelectJob(Activity job, string jobName) {
-		
-	}
 }
