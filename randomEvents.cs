@@ -133,7 +133,6 @@ public class randomEvents : MonoBehaviour{
 			if (daytoadd > maxDays)
 				daytoadd = 1;
 			if (daytoadd == 1) {
-				Debug.LogWarning("Month is full.");
 				return;
 			}
 		}
