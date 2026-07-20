@@ -10,8 +10,11 @@ made by Velvetsoft
 2)add in working store fronts and item usage
 3)add in VN aspects
 4)random sickness that can spawn randomly through the month and turn days into sick days(doing random events rn so both this and VN can be ran)
-5) change to fixed point arithmetic
 6)implement intro
+
+bugs:
+if at start of the game in the middle of the month it will put element 0 as the first then the last will be element 2, put it at
+element 1 and find a way to put in the dictionary unsued data
 
 initiation :
 if current date if date == null then get daughters birthday & display else pull up date list and display current date
@@ -49,7 +52,7 @@ public class schedule : MonoBehaviour {
 	};
 	
 	private bool IsLeapYear(int year) {
-		return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		return ((int)mathlib.Remainder((uint)year, 4) == 0 && (int)mathlib.Remainder((uint)year, 100) != 0) || ((int)mathlib.Remainder((uint)year, 400) == 0);
 	}
 	
 	public void MakeCalender() {
@@ -144,13 +147,13 @@ take chash for food
 		if(todaysday != 1 && firstrun == false) {
 			todaysday--;
 			ximpos = monthStartDays[yearType, todaysmonth - 1] + todaysday;
-			if (ximpos%7 != 0) {
-				yimpos = ximpos/7;
+			if ((int)mathlib.Remainder((uint)ximpos,7) != 0) {
+				yimpos = (int)mathlib.Divider((uint)ximpos, 7u);
 			} else {
-				yimpos = (ximpos/7) - 1;
+				yimpos = ((int)mathlib.Divider((uint)ximpos, 7u)) - 1;
 			}
 			if(ximpos >= 7) {
-					ximpos = ximpos%7;
+					ximpos = (int)mathlib.Remainder((uint)ximpos,7);
 				if (ximpos == 0) {
 					ximpos = 7;
 				}
