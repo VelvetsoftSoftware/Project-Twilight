@@ -67,4 +67,8 @@ public class bitpacker : MonoBehaviour{
 		writer.Write(b2);
 	}
 	
+	public void loadupacker() {
+		
+	}
+	
 }
