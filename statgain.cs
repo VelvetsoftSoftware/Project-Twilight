@@ -4,20 +4,14 @@ using System.Collections.Generic;
 
 public class statgain : MonoBehaviour {
 	
-	/*action for week:
-	name of job/school/rest/vacation
-	name
-	pay/cost per hour
-	success animation animantion
-	failure animation*/
-	
-	[SerializeField]private bitpacker Bitpacker;
-	[SerializeField]private Stats stats;
-	[SerializeField]private jobs Jobs;
-	private float difficulty = 0.0f;
+	[SerializeField] private bitpacker Bitpacker;
+	[SerializeField] private Stats stats;
+	[SerializeField] private jobs Jobs;
+	private byte difficulty = 0;
 	public Button maidButton, chapelCleanerButton, babySitterButton, houseWorkButton, chimneySweeperButton;
 	private Dictionary<int, jobs.Activity> _activityLookup;
 	byte firstsecond = 0;
+	
 	public Dictionary<int, jobs.Activity> activityLookup {
 		get {
 			if (_activityLookup == null){
@@ -34,24 +28,21 @@ public class statgain : MonoBehaviour {
 		}
 	}
 	
-	//we need to add the string to this to activate it
 	public void startroutine(int x){
 		jobs.Activity job = activityLookup[x];
 
-		// this is only tempory for initialization
 		ushort currentOperation = 0;
 		ref ushort opStat = ref stats.elegance;
-		ref float modifier = ref stats.social;
+		ref byte modifier = ref stats.social;
 		
 		for(ushort m = 0; m < 8; m++) {
-				
 			byte currentStat = Bitpacker.unpacker(m, job);
 			if(firstsecond == 0) 
 				firstsecond = 1;
 			else 
 				firstsecond = 0;
 				
-			currentOperation = Bitpacker.statsUnpacker(1 , firstsecond, m, job);
+			currentOperation = Bitpacker.statsUnpacker(1, firstsecond, m, job);
 				
 			switch(currentStat) {
 				case 0: opStat = ref stats.elegance; modifier = ref stats.social; break;
@@ -75,137 +66,137 @@ public class statgain : MonoBehaviour {
 				case 15: opStat = ref stats.peity; modifier = ref stats.faith; break;
 			}
 			
-			if( currentOperation != 0) {
+			if(currentOperation != 0) {
 				// --- increase ---
 				if(m <= 3) {
 					if (opStat < 1000){
-						float gain = (modifier + weightedrandomnumber()) * currentOperation + job.proficiency;
-						opStat = (ushort)(opStat + calcstatgain(currentOperation, job.proficiency, stats.fatigue, 0.5f /*difficulty*/, modifier, job));
+						opStat = (ushort)(opStat + calcstatgain(opStat, job.Proficiency, stats.fatigue, 50, modifier, job));
 						if(opStat > 1000){
 							opStat = 1000;
 						}
 					}
-				} /* --- decrease --- */else {
+				} 
+				// --- decrease --- 
+				else {
 					if (opStat > 0){
-					float loss = (modifier + weightedrandomnumber()) * currentOperation;
-					if (opStat - loss >= 0)
-						opStat -= (ushort)Mathf.Clamp(Mathf.RoundToInt(loss), 0, opStat);
-					else
-						opStat = 0;
+						int loss = (modifier + weightedrandomnumber()) * currentOperation;
+						if (opStat - loss >= 0)
+							opStat -= (ushort)Mathf.Clamp(loss, 0, opStat);
+						else
+							opStat = 0;
 					}
 				}
 			}
 		}
 	
 		// Add funds
-		stats.funds += (int)mathforfunds(job, stats.funds);
+		stats.funds += mathforfunds(job, stats.elegance);
 
 		// --- Fatigue increase ---
-		float fatigueGain = (stats.physical + weightedrandomnumber()) * (job.PackedStats & 0xF);
-		stats.fatigue += (ushort)Mathf.Clamp(Mathf.RoundToInt(fatigueGain), 0, ushort.MaxValue - stats.fatigue);
+		int fatigueGain = (stats.physical + weightedrandomnumber()) * (int)(job.PackedStats & 0xF);
+		stats.fatigue += (ushort)Mathf.Clamp(fatigueGain, 0, ushort.MaxValue - stats.fatigue);
 	}
 	
-	float weightedrandomnumber(){
+	int weightedrandomnumber(){
 		int randomweight = UnityEngine.Random.Range(1, 100);
 
-		if (1 <= randomweight && randomweight <= 6) {
-			return -2.0f;
-		} else if (7 <= randomweight && randomweight <= 17) {
-			return -1.0f;
-		} else if (18 <= randomweight && randomweight <= 58) {
-			return 0.0f;
-		} else if (59 <= randomweight && randomweight <= 89) {
-			return 1.0f;
-		} else if (90 <= randomweight && randomweight <= 100) {
-			return 2.0f;
-		}
-
-		return 0.0f;
+		if (randomweight <= 6) return -2;
+		if (randomweight <= 17) return -1;
+		if (randomweight <= 58) return 0;
+		if (randomweight <= 89) return 1;
+		return 2;
 	}
 	
-	int mathforfunds(jobs.Activity job, float stat) {
-		float k = 300.0f;
-		float a = 4.0f;
-		float sqrtcomp = Mathf.Sqrt(stat);
-		float satcomp = stat / (stat + k);
-		float skillpower = a * sqrtcomp * satcomp;
-		float effectivefatigue;
+	int mathforfunds(jobs.Activity job, uint stat) {
+		uint k = 300;
+		uint a = 4;
+		uint sqrtcomp = mathlib.Quicksqrt(stat);
+		
+		// Replaced standard division with mathlib.Divider for saturation computation
+		uint satcompDivider = stat + k;
+		uint satcomp = satcompDivider == 0 ? 0 : mathlib.Divider(stat * 100, satcompDivider); 
+
+		uint skillpower = (a * sqrtcomp * satcomp) / 100;
+		uint effectivefatigue;
 		int randomchance = UnityEngine.Random.Range(0, 10);
 
-		if(stats.age <= 14)
-			effectivefatigue = Mathf.Pow(stats.fatigue, 3) / 1000000.0f;
+		// Replaced division scaling with mathlib.Divider
+		if (stats.age <= 14)
+			effectivefatigue = mathlib.Divider(mathlib.Exponent(stats.fatigue, 3), 1000000);
 		else
-			effectivefatigue = Mathf.Pow(stats.fatigue, 2) / 1000000.0f;
-		if(effectivefatigue > 1000.0f)
-			effectivefatigue = 1000.0f;
-		float condition = ((1000.0f - effectivefatigue) + stats.mood + job.proficiency);
+			effectivefatigue = mathlib.Divider(mathlib.Exponent(stats.fatigue, 2), 1000000);
+
+		if (effectivefatigue > 1000)
+			effectivefatigue = 1000;
+
+		int condition = (int)((1000 - effectivefatigue) + stats.mood + job.Proficiency);
 	
-		if(condition < 0.0f)
-			condition = 0.0f;
-		else
-			condition = Mathf.Clamp01(condition / 1000f);
+		if (condition < 0)
+			condition = 0;
+		else if (condition > 1000)
+			condition = 1000;
+
+		int randterm = (randomchance - difficulty) * 2;
 	
-		float randterm = (randomchance - difficulty) * 2.0f;
+		// Replaced standard division with mathlib.Divider for percentage normalization
+		long scaledCondition = mathlib.Divider((uint)Mathf.Max(0, condition), 10); // condition / 1000 scaled down to percentage
+		long jobscore = ((long)skillpower * scaledCondition / 100) + randterm;
 	
-		float jobscore = (skillpower * condition) + randterm;
-	
-		if(jobscore >= 50.0f){
-			Debug.Log("you got cash" + jobscore);
+		if (jobscore >= 50) {
+			Debug.Log("you got cash " + jobscore);
 			return Bitpacker.moneyUnpacker(job);
-		}else
+		} else {
 			return 0;
+		}
 	}
 	
-	ushort calcstatgain(float stat, float proficiency, float fatigue, float difficulty, float growthmultiplayer, jobs.Activity job) {
-		// Random bias (weighted, like your weightedrandomnumber)
-		float randBias = weightedrandomnumber();
+	ushort calcstatgain(uint stat, byte proficiency, ushort fatigue, uint difficultyRating, uint growthmultiplayer, jobs.Activity job) {
+		int randBias = weightedrandomnumber();
 
-		// Core performance formula (similar to mathforfunds)
-		float k = 300.0f;
-		float a = 4.0f;
-		float sqrtComp = Mathf.Sqrt(stat);
-		float decay = 2 * Mathf.Pow(0.88f, (stats.age - 10));
-		float satComp = stat / (stat + k);
-		float skillPower = a * sqrtComp * satComp;
-		float mastery = 0;
+		uint k = 300;
+		uint a = 4;
+		uint sqrtComp = mathlib.Quicksqrt(stat);
+		
+		uint ageDiff = (uint)Mathf.Max(0, stats.age - 10);
+		uint decay = 2 * mathlib.Divider(mathlib.Exponent(88, (byte)ageDiff), 100);
 
-		// Fatigue scaling (same logic as before)
-		float effectiveFatigue;
+		uint satcompDivider = stat + k;
+		uint satcomp = satcompDivider == 0 ? 0 : mathlib.Divider(stat * 100, satcompDivider);
+		uint skillPower = (a * sqrtComp * satcomp) / 100;
+		
+		uint mastery = 0;
+		uint effectiveFatigue;
+
+		// Replaced division scaling with mathlib.Divider
 		if (stats.age <= 14)
-			effectiveFatigue = Mathf.Pow(fatigue, 3) / 10000.0f;
+			effectiveFatigue = mathlib.Divider(mathlib.Exponent(fatigue, 3), 10000);
 		else
-			effectiveFatigue = Mathf.Pow(fatigue, 2) / 10000.0f;
-		if (effectiveFatigue > 1000.0f)
-			effectiveFatigue = 1000.0f;
-		Debug.Log("effectiveFatigue " + effectiveFatigue);
+			effectiveFatigue = mathlib.Divider(mathlib.Exponent(fatigue, 2), 10000);
 
-		// Proficiency modifies efficiency (like training familiarity)
-		int completedTiers = Mathf.FloorToInt(proficiency); // full mastery cycles
-		float fractionalProgress = proficiency - completedTiers; // progress toward next tier
-		
+		if (effectiveFatigue > 1000)
+			effectiveFatigue = 1000;
+
+		int completedTiers = proficiency; 
 		switch (completedTiers) {
-			case 1: mastery = 0.5f; break;
-			case 2: mastery = 1.0f; break;
-			case 3: mastery = 1.5f; break;
+			case 1: mastery = 50; break;
+			case 2: mastery = 100; break;
+			case 3: mastery = 150; break;
 		}
+
+		uint proficiencyFactor = 100 + mastery; 
 		
-		mastery += fractionalProgress;
+		// Replaced standard division for difficulty scaling with mathlib.Divider
+		uint difficultyPenalty = mathlib.Divider(difficultyRating * 100, 20);
+		uint difficultyFactor = 100 - difficultyPenalty; 
+		uint condition = (1000 - effectiveFatigue);
 
-		float proficiencyFactor = 1.0f + (mastery / 100.0f); // +1% per proficiency point
+		// Combined calculation utilizing the reciprocal multiplier pipeline
+		long totalEffect = (((long)growthmultiplayer * skillPower * proficiencyFactor * condition * difficultyFactor * decay) / 100000000) + randBias;
 
-		// Difficulty reduces effective progress
-		float difficultyFactor = 1.0f - (difficulty / 20.0f); // e.g. difficulty 5 = -25%
-
-		// Combine all influences
-		float condition = Mathf.Clamp01((1000.0f - effectiveFatigue) / 1000.0f);
-		float totalEffect = (growthmultiplayer * skillPower * proficiencyFactor * condition * difficultyFactor * decay) + randBias;
-
-		// Scale to PM2-like progression (around +10–20 strength per month)
-		float strengthGain = Mathf.Clamp(totalEffect * 0.25f, 1.0f, 20.0f);
+		// Final scale down via mathlib.Divider instead of raw division
+		long strengthGain = Mathf.Clamp((int)mathlib.Divider((uint)Mathf.Abs((int)totalEffect), 4), 1, 20);
 		Debug.Log("strengthGain " + strengthGain);
 		
-		if (job.proficiency < 3.0f)
-			job.proficiency += 0.1f;
-		return (ushort)Mathf.Abs(Mathf.RoundToInt(strengthGain));
+		return (ushort)strengthGain;
 	}
 }
