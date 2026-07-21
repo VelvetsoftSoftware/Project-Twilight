@@ -48,8 +48,8 @@ public class SaveLoadSystem : MonoBehaviour{
 					writer.Write(new byte[8]);	
 				}
 			} else {
-				fs.Seek(8 + (eventID / 8), SeekOrigin.Begin);
-				int bitIndex = eventID % 8;
+				fs.Seek(8 + ((int)mathlib.Remainder((uint)eventID, 8)), SeekOrigin.Begin);
+				int bitIndex = (int)mathlib.Remainder((uint)eventID, 8);
 				// Read existing byte, flip bit, write back
 				int b = fs.ReadByte();
 				fs.Seek(-1, SeekOrigin.Current); // Go back one byte
@@ -90,7 +90,7 @@ public class SaveLoadSystem : MonoBehaviour{
 	
 	private void readEvents(ushort eventID, string filePath) {
 		using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
-			fs.Seek(8 + (eventID / 8), SeekOrigin.Begin);
+			fs.Seek(8 + ((int)mathlib.Divider((uint)eventID, 8)), SeekOrigin.Begin);
 
 		}
 	}
