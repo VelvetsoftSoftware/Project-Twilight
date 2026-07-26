@@ -148,9 +148,9 @@ take chash for food
 			todaysday--;
 			ximpos = monthStartDays[yearType, todaysmonth - 1] + todaysday;
 			if ((int)mathlib.Remainder((uint)ximpos,7) != 0) {
-				yimpos = (int)mathlib.Divider((uint)ximpos, 7u);
+				yimpos = (int)mathlib.Divider((uint)ximpos, 7);
 			} else {
-				yimpos = ((int)mathlib.Divider((uint)ximpos, 7u)) - 1;
+				yimpos = ((int)mathlib.Divider((uint)ximpos, 7)) - 1;
 			}
 			if(ximpos >= 7) {
 					ximpos = (int)mathlib.Remainder((uint)ximpos,7);
@@ -226,9 +226,11 @@ take chash for food
 	}
 	
 	public void intiateimage() {
+		Debug.Log("ximpos " + ximpos);
+		Debug.Log("yimpos " + yimpos);
 		if(ximpos >= 8) {
+			yimpos += (int)mathlib.Divider((uint)ximpos, 7);
 			ximpos = 1;
-			yimpos++;
 		}
 		ximposition = -600 + (50 * ximpos);
 		yimposition = 150 - (50 * yimpos);
