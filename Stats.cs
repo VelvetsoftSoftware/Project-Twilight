@@ -3,7 +3,7 @@ using UnityEngine;
 public class Stats : MonoBehaviour {
     public byte age = 10;
 	public int funds = 244, income = 0;
-	public ushort height = 458, weight  = 8900, hips = 2840; // all if pushed left 2, so height would equal 4.58
+	public ushort height = 458, weight  = 8900, hips = 2840, bust = 3600; // all if pushed left 2, so height would equal 4.58
 	public byte profession = 0;
 	public bool introIsActive = false;
 	
