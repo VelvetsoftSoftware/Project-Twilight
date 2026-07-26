@@ -9,7 +9,7 @@ public class Stats : MonoBehaviour {
 	
 	[SerializeField]private dates Dates;
 	
-	public ushort mood = 0.0f;
+	public ushort mood = 0;
 	
 	//Social
 	public ushort elegance = 0, grace = 0, glamor = 0, negotiation = 0;
@@ -104,78 +104,78 @@ public class Stats : MonoBehaviour {
 	}
 	
 	private void spring() {
-		physical = physical + 20;
-		social = social + 30;
+		physical += 20;
+		social += 30;
 		//const goes up quicker
 		//gives extra points to releationships
 	}
 	
 	private void summer() {
-		physical = physical + 30;
-		intelligance = intelligance - 20;
+		physical += 30;
+		intelligance += 20;
 		//preforms better at comp and tournaments
 	}
 	
 	private void autumn() {
-		intelligance = intelligance + 20;
-		social = social - 20;
+		intelligance += 20;
+		social += 20;
 		//
 	}
 	
 	private void winter() {
-		physical = physical + 10;
-		intelligance = intelligance + 10;
-		faith = faith + 30;
-		social = social - 20;
+		physical += 10;
+		intelligance += 10;
+		faith += 30;
+		social -= 20;
 		//mysticism
 		
 	}
 	
 	public void daughterseason() {
-    if ((Dates.monthdaughter == 3 && Dates.daydaughter >= 20) || 
-        (Dates.monthdaughter >= 4 && Dates.monthdaughter <= 5) || 
-        (Dates.monthdaughter == 6 && Dates.daydaughter < 21)) {
-        spring();
-    } else if ((Dates.monthdaughter == 6 && Dates.daydaughter >= 21) || 
-               (Dates.monthdaughter >= 7 && Dates.monthdaughter <= 8) || 
-               (Dates.monthdaughter == 9 && Dates.daydaughter < 22)) {
-        summer();
-    } else if ((Dates.monthdaughter == 9 && Dates.daydaughter >= 22) || 
-               (Dates.monthdaughter == 10) || 
-               (Dates.monthdaughter == 11 && Dates.daydaughter <= 30)) {
-        autumn();
-    } else if ((Dates.monthdaughter == 11 && Dates.daydaughter >= 20) || 
-               (Dates.monthdaughter == 12) || 
-               (Dates.monthdaughter == 1 || Dates.monthdaughter == 2) || 
-               (Dates.monthdaughter == 3 && Dates.daydaughter < 20)) {
-        winter();
-    }
-}
+		if ((Dates.monthdaughter == 3 && Dates.daydaughter >= 20) || 
+			(Dates.monthdaughter >= 4 && Dates.monthdaughter <= 5) || 
+			(Dates.monthdaughter == 6 && Dates.daydaughter < 21)) {
+			spring();
+		} else if ((Dates.monthdaughter == 6 && Dates.daydaughter >= 21) || 
+			(Dates.monthdaughter >= 7 && Dates.monthdaughter <= 8) || 
+			(Dates.monthdaughter == 9 && Dates.daydaughter < 22)) {
+			summer();
+		} else if ((Dates.monthdaughter == 9 && Dates.daydaughter >= 22) || 
+			(Dates.monthdaughter == 10) || 
+            (Dates.monthdaughter == 11 && Dates.daydaughter <= 30)) {
+			autumn();
+		} else if ((Dates.monthdaughter == 11 && Dates.daydaughter >= 20) || 
+            (Dates.monthdaughter == 12) || 
+            (Dates.monthdaughter == 1 || Dates.monthdaughter == 2) || 
+            (Dates.monthdaughter == 3 && Dates.daydaughter < 20)) {
+			winter();
+		}
+	}
 	
 	private void a() {
-		stressgainfactor = stressgainfactor + 30;
-		physical = physical + 40;
+		stressgainfactor += 30;
+		physical += 40;
 		//gains extra stress reduction during vacations
 	}
 	
 	private void b() {
-		stressgainfactor = stressgainfactor - 20;
-		intelligance = intelligance - 20;
-		social = social - 10;
+		stressgainfactor -= 20;
+		intelligance -= 20;
+		social -= 10;
 		//art and craftsmenship gos up
 		// gain more stats for art/craftsmenship
 	}
 	
 	private void ab() {
-		intelligance = intelligance + 20;
-		social = social - 10;
-		faith = faith + 10;
+		intelligance += 20;
+		social -= 10;
+		faith += 10;
 		//unlocks unique options to solve delemias
 	}
 	
 	private void o() {
-		social = social + 30;
-		physical = physical + 10;
+		social += 30;
+		physical += 10;
 		// natural leader
 	}
 	
