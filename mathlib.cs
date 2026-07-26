@@ -1,7 +1,9 @@
 using UnityEngine;
-using UnityEngine;
 
 public static class mathlib {
+	
+	// Must never be 0.
+    public static ushort Seed = 0xACE1;
 	
 	/* the idea is that normal numbers will be proccessed normally but decials
 	are set to always be xxxx.xx so they will always be two decimal places
@@ -14,17 +16,26 @@ public static class mathlib {
 	//(int)mathlib.Divider((uint) , )
 
     // 16 bit
-    // precomputed: round(65536 / ((i << 7) + 64))
-    private static readonly uint[] ReciprocalTable = new uint[128] {
-        1024, 1014, 1004, 994,  985,  975,  966,  957,  948,  940,  931,  923,  914,  906,  898,  890,
-        883,  875,  868,  860,  853,  846,  839,  832,  825,  819,  812,  805,  799,  793,  786,  780,
-        774,  768,  762,  756,  750,  745,  739,  734,  728,  723,  717,  712,  707,  702,  697,  692,
-        687,  682,  677,  673,  668,  663,  659,  654,  650,  646,  641,  637,  633,  629,  625,  621,
-        617,  613,  609,  605,  601,  598,  594,  590,  587,  583,  580,  576,  573,  569,  566,  563,
-        559,  556,  553,  550,  546,  543,  540,  537,  534,  531,  529,  526,  523,  520,  517,  515,
-        512,  509,  506,  504,  501,  499,  496,  494,  491,  489,  486,  484,  482,  479,  477,  475,
-        472,  470,  468,  466,  463,  461,  459,  457,  455,  453,  451,  449,  447,  445,  443,  441
-    };
+	// precomputed: round(65536 / i)
+	private static readonly uint[] ReciprocalTable = new uint[129] {
+		0,
+		65536, 32768, 21845, 16384, 13107, 10923, 9362, 8192,
+		7282, 6554, 5958, 5461, 5041, 4681, 4369, 4096,
+		3855, 3641, 3449, 3277, 3121, 2979, 2849, 2731,
+		2621, 2521, 2427, 2341, 2260, 2185, 2114, 2048,
+		1986, 1928, 1872, 1820, 1771, 1725, 1680, 1638,
+		1601, 1560, 1525, 1490, 1456, 1425, 1395, 1365,
+		1337, 1311, 1285, 1260, 1236, 1214, 1192, 1170,
+		1150, 1129, 1111, 1092, 1074, 1057, 1040, 1024,
+		1008, 993, 978, 963, 949, 936, 922, 910,
+		897, 885, 873, 862, 851, 840, 829, 819,
+		809, 799, 790, 780, 771, 762, 753, 745,
+		736, 728, 720, 712, 705, 697, 690, 683,
+		676, 670, 663, 657, 650, 644, 638, 632,
+		626, 621, 615, 610, 604, 599, 594, 589,
+		584, 579, 574, 570, 565, 560, 556, 551,
+		547, 543, 538, 534, 530, 526, 522, 518
+	};
 	
 	// Bit length lookup for 8-bit values (0 = 0 bits)
 	private static readonly byte[] BitLengthTable = new byte[256] {
@@ -80,7 +91,7 @@ public static class mathlib {
         }
         
         uint scale;
-        if (divider <= 128) {
+        if (divider <= 129) {
             scale = ReciprocalTable[divider];
         } else if (divider < 16384) {
             uint index = divider >> 7;
@@ -143,6 +154,22 @@ public static class mathlib {
                     return Exponent(temp, (byte)(power >> 1));
         }
     }
+	
+	// Generates a random byte (0-255)
+    public static byte byteRNG() {
+	        for (int i = 0; i < 8; i++)
+        {
+            bool carry = (Seed & 0x8000) != 0;
+
+            Seed <<= 1;
+
+            if (carry)
+                Seed ^= 0x0039;
+        }
+
+        return (byte)Seed;
+    }
+
 
     // Helper implementation for finding leading bit length (De Bruijn or simple loop)
 	private static int BitLength(uint value) {
