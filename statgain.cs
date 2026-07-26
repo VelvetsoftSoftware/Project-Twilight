@@ -7,7 +7,6 @@ public class statgain : MonoBehaviour {
 	[SerializeField] private bitpacker Bitpacker;
 	[SerializeField] private Stats stats;
 	[SerializeField] private jobs Jobs;
-	private byte difficulty = 0;
 	public Button maidButton, chapelCleanerButton, babySitterButton, houseWorkButton, chimneySweeperButton;
 	private Dictionary<int, jobs.Activity> _activityLookup;
 	byte firstsecond = 0;
@@ -65,12 +64,12 @@ public class statgain : MonoBehaviour {
 				case 13: opStat = ref stats.sin; modifier = ref stats.faith; break;
 				case 15: opStat = ref stats.peity; modifier = ref stats.faith; break;
 			}
-			
+				
 			if(currentOperation != 0) {
 				// --- increase ---
 				if(m <= 3) {
 					if (opStat < 1000){
-						opStat = (ushort)(opStat + calcstatgain(opStat, job.Proficiency, stats.fatigue, 50, modifier, job));
+						opStat = (ushort)(opStat + calcstatgain(opStat, job.Proficiency, stats.fatigue, modifier, job));
 						if(opStat > 1000){
 							opStat = 1000;
 						}
@@ -88,59 +87,72 @@ public class statgain : MonoBehaviour {
 				}
 			}
 		}
-	
+		
 		// Add funds
-		stats.funds += mathforfunds(job, stats.elegance);
+		stats.funds += mathforfunds(job, opStat);
 
 		// --- Fatigue increase ---
-		int fatigueGain = (stats.physical + weightedrandomnumber()) * (int)(job.PackedStats & 0xF);
+		int fatigueGain = ((stats.fatigue + weightedrandomnumber()) * (byte)(job.PackedStats & 0x000000000F)) * stats.stressgainfactor;
 		stats.fatigue += (ushort)Mathf.Clamp(fatigueGain, 0, ushort.MaxValue - stats.fatigue);
 	}
 	
-	int weightedrandomnumber(){
-		int randomweight = UnityEngine.Random.Range(1, 100);
+	private int weightedrandomnumber(){
+		byte rng = mathlib.byteRNG(); // Assumes byteRNG is accessible in mathlib or locally
+		
+		// Map 0-255 to percentage (0-99)
+		int roll = (rng * 100) / 255;
 
-		if (randomweight <= 6) return -2;
-		if (randomweight <= 17) return -1;
-		if (randomweight <= 58) return 0;
-		if (randomweight <= 89) return 1;
-		return 2;
+		if (roll < 50) return 0;       // 50% chance
+		if (roll < 70) return -1;      // 20% chance (50 to 69)
+		if (roll < 90) return 1;       // 20% chance (70 to 89)
+		if (roll < 95) return -2;      // 5% chance  (90 to 94)
+		return 2;                      // 5% chance  (95 to 99)
 	}
 	
-	int mathforfunds(jobs.Activity job, uint stat) {
-		uint k = 300;
-		uint a = 4;
+	private (uint skillPower, uint effectiveFatigue, uint masteryBonus) GetSharedCalculations(uint stat, ushort fatigue, ushort proficiency) {
+		// 1. Skill Power & Saturation
 		uint sqrtcomp = mathlib.Quicksqrt(stat);
-		
-		// Replaced standard division with mathlib.Divider for saturation computation
-		uint satcompDivider = stat + k;
+		uint satcompDivider = stat + 300;
 		uint satcomp = satcompDivider == 0 ? 0 : mathlib.Divider(stat * 100, satcompDivider); 
-
-		uint skillpower = (a * sqrtcomp * satcomp) / 100;
-		uint effectivefatigue;
-		int randomchance = UnityEngine.Random.Range(0, 10);
-
-		// Replaced division scaling with mathlib.Divider
+		uint skillPower = mathlib.Divider((4 * sqrtcomp * satcomp), 100);
+		
+		// 2. Effective Fatigue
+		uint effectiveFatigue;
 		if (stats.age <= 14)
-			effectivefatigue = mathlib.Divider(mathlib.Exponent(stats.fatigue, 3), 1000000);
+			effectiveFatigue = mathlib.Divider(mathlib.Exponent(fatigue, 3), 10000);
 		else
-			effectivefatigue = mathlib.Divider(mathlib.Exponent(stats.fatigue, 2), 1000000);
+			effectiveFatigue = mathlib.Divider(mathlib.Exponent(fatigue, 2), 10000);
 
-		if (effectivefatigue > 1000)
-			effectivefatigue = 1000;
+		if (effectiveFatigue > 1000)
+			effectiveFatigue = 1000;
 
-		int condition = (int)((1000 - effectivefatigue) + stats.mood + job.Proficiency);
+		// 3. Mastery Bonus
+		uint masteryBonus = 0;
+		switch (proficiency) {
+			case 100: masteryBonus = 2; break;
+			case 200: masteryBonus = 4; break;
+			case 300: masteryBonus = 6; break;
+			default:  masteryBonus = 0; break;
+		}
+
+		return (skillPower, effectiveFatigue, masteryBonus);
+	}
 	
-		if (condition < 0)
-			condition = 0;
-		else if (condition > 1000)
-			condition = 1000;
-
-		int randterm = (randomchance - difficulty) * 2;
+	private int mathforfunds(jobs.Activity job, uint stat) {
+		var shared = GetSharedCalculations(stat, stats.fatigue, job.Proficiency);
+		
+		int randomchance = weightedrandomnumber();
+		
+		// Condition factors in fatigue penalty, mood, and mastery bonus
+		int condition = (int)((1000 - shared.effectiveFatigue) + stats.mood + shared.masteryBonus);
 	
-		// Replaced standard division with mathlib.Divider for percentage normalization
-		long scaledCondition = mathlib.Divider((uint)Mathf.Max(0, condition), 10); // condition / 1000 scaled down to percentage
-		long jobscore = ((long)skillpower * scaledCondition / 100) + randterm;
+		if (condition < 0) condition = 0;
+		else if (condition > 1000) condition = 1000;
+
+		int randterm = randomchance * 2;
+	
+		uint scaledCondition = mathlib.Divider((uint)Mathf.Max(0, condition), 10);
+		uint jobscore = (uint)(shared.skillPower * mathlib.Divider(scaledCondition, 100) + randterm);
 	
 		if (jobscore >= 50) {
 			Debug.Log("you got cash " + jobscore);
@@ -150,53 +162,14 @@ public class statgain : MonoBehaviour {
 		}
 	}
 	
-	ushort calcstatgain(uint stat, byte proficiency, ushort fatigue, uint difficultyRating, uint growthmultiplayer, jobs.Activity job) {
+	private ushort calcstatgain(uint stat, ushort proficiency, ushort fatigue, uint growthmultiplayer, jobs.Activity job) {
+		var shared = GetSharedCalculations(stat, fatigue, proficiency);
 		int randBias = weightedrandomnumber();
 
-		uint k = 300;
-		uint a = 4;
-		uint sqrtComp = mathlib.Quicksqrt(stat);
-		
-		uint ageDiff = (uint)Mathf.Max(0, stats.age - 10);
-		uint decay = 2 * mathlib.Divider(mathlib.Exponent(88, (byte)ageDiff), 100);
+		// Simplified calculation utilizing the shared mastery bonus directly
+		int baseGain = (int)(growthmultiplayer / 50) + (int)shared.masteryBonus;
+		int finalGain = baseGain + randBias;
 
-		uint satcompDivider = stat + k;
-		uint satcomp = satcompDivider == 0 ? 0 : mathlib.Divider(stat * 100, satcompDivider);
-		uint skillPower = (a * sqrtComp * satcomp) / 100;
-		
-		uint mastery = 0;
-		uint effectiveFatigue;
-
-		// Replaced division scaling with mathlib.Divider
-		if (stats.age <= 14)
-			effectiveFatigue = mathlib.Divider(mathlib.Exponent(fatigue, 3), 10000);
-		else
-			effectiveFatigue = mathlib.Divider(mathlib.Exponent(fatigue, 2), 10000);
-
-		if (effectiveFatigue > 1000)
-			effectiveFatigue = 1000;
-
-		int completedTiers = proficiency; 
-		switch (completedTiers) {
-			case 1: mastery = 50; break;
-			case 2: mastery = 100; break;
-			case 3: mastery = 150; break;
-		}
-
-		uint proficiencyFactor = 100 + mastery; 
-		
-		// Replaced standard division for difficulty scaling with mathlib.Divider
-		uint difficultyPenalty = mathlib.Divider(difficultyRating * 100, 20);
-		uint difficultyFactor = 100 - difficultyPenalty; 
-		uint condition = (1000 - effectiveFatigue);
-
-		// Combined calculation utilizing the reciprocal multiplier pipeline
-		long totalEffect = (((long)growthmultiplayer * skillPower * proficiencyFactor * condition * difficultyFactor * decay) / 100000000) + randBias;
-
-		// Final scale down via mathlib.Divider instead of raw division
-		long strengthGain = Mathf.Clamp((int)mathlib.Divider((uint)Mathf.Abs((int)totalEffect), 4), 1, 20);
-		Debug.Log("strengthGain " + strengthGain);
-		
-		return (ushort)strengthGain;
+		return (ushort)Mathf.Clamp(finalGain, 0, 20);
 	}
 }
