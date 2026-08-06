@@ -63,8 +63,8 @@ public class SaveLoadSystem : MonoBehaviour{
 			
 				Bitpacker.savepacker(writer, stats.elegance, stats.grace);
 				Bitpacker.savepacker(writer, stats.glamor, stats.negotiation);
-				writer.Write(stats.reputation);
-			
+				writer.Write(stats.reputation);	
+				
 				Bitpacker.savepacker(writer, stats.agality, stats.athletics);
 				Bitpacker.savepacker(writer, stats.strength, stats.fatigue);
 			
@@ -75,16 +75,31 @@ public class SaveLoadSystem : MonoBehaviour{
 				Bitpacker.savepacker(writer, stats.theology, stats.sin);
 				Bitpacker.savepacker(writer, stats.peity, 0);
 			}
-			
-		}
-		
+		}	
 	}
 	
 	public void loadGame(string filePath) {
+		ushort dummy = 0;
 		using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
+			fs.Seek(16, SeekOrigin.Begin); // Skip 16 bytes (8 for header/length, 8 for flags)
+			using (BinaryReader reader = new BinaryReader(fs)) {
+				stats.funds = reader.ReadInt32();
+				stats.income = reader.ReadInt32();
+				
+				Bitpacker.loadupacker(reader, ref stats.elegance, ref stats.grace);
+				Bitpacker.loadupacker(reader, ref stats.glamor, ref stats.negotiation);
+				stats.reputation = reader.ReadInt32();
+				
+				Bitpacker.loadupacker(reader, ref stats.agality, ref stats.athletics);
+				Bitpacker.loadupacker(reader, ref stats.strength, ref stats.fatigue);
 			
+				Bitpacker.loadupacker(reader, ref stats.craftsmanship, ref stats.stategy);
+				Bitpacker.loadupacker(reader, ref stats.science, ref stats.history);
 			
-			Bitpacker.loadupacker();
+				Bitpacker.loadupacker(reader, ref stats.math, ref stats.morality);
+				Bitpacker.loadupacker(reader, ref stats.theology, ref stats.sin);
+				Bitpacker.loadupacker(reader, ref stats.peity, ref dummy);
+			}
 		}
 	}
 	
