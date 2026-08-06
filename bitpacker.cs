@@ -67,8 +67,12 @@ public class bitpacker : MonoBehaviour{
 		writer.Write(b2);
 	}
 	
-	public void loadupacker() {
-		
+	public void loadupacker(BinaryReader reader, ref ushort stat1, ref ushort stat2) {
+		byte b0 = reader.ReadByte();
+		byte b1 = reader.ReadByte();
+		byte b2 = reader.ReadByte();
+
+		stat1 = (ushort)(b0 | ((b1 & 0x0F) << 8));
+		stat2 = (ushort)(((b1 >> 4) & 0x0F) | (b2 << 4));
 	}
-	
 }
