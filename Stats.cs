@@ -9,8 +9,6 @@ public class Stats : MonoBehaviour {
 	
 	[SerializeField]private dates Dates;
 	
-	public ushort mood = 0;
-	
 	//Social
 	public ushort elegance = 0, grace = 0, glamor = 0, negotiation = 0;
 	public int reputation = 0;
