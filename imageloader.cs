@@ -6,8 +6,8 @@ using System.IO;
 
 /*
 8 bytes header
-4 bytes height
-4 bytes width
+2 bytes height
+2 bytes width
 4 bits pallet
 4 bits first pixel 
 1 byte 2 pixels
