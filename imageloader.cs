@@ -9,6 +9,8 @@ using System.IO;
 2 bytes height
 2 bytes width
 1 byte pallet + first pixel 
+
+x amount for the image
 1 byte 2 pixels
 */
 
