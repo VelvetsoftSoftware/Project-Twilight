@@ -8,8 +8,7 @@ using System.IO;
 8 bytes header
 2 bytes height
 2 bytes width
-4 bits pallet
-4 bits first pixel 
+1 byte pallet + first pixel 
 1 byte 2 pixels
 */
 
@@ -135,8 +134,7 @@ public class imageLoader {
 				
 				uint totalPixels = (uint)(width * height);
 				pixels = new Color32[totalPixels];
-
-				palleteanddata = reader.ReadByte();
+				
 				drawimage(reader);
 				texture.SetPixels32(pixels);
 				texture.Apply();
@@ -153,7 +151,8 @@ public class imageLoader {
 
 		if (width == 0 || height == 0)
     		return false;
-		
+
+		palleteanddata = reader.ReadByte();
 		byte temp = palleteanddata;
 		palletSet = (byte)(temp >> 4);
 
