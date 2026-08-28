@@ -4,8 +4,16 @@ using UnityEngine;
 using System;
 using System.IO;
 
+/*
+8 bytes header
+4 bytes height
+4 bytes width
+4 bits pallet
+4 bits first pixel 
+1 byte 2 pixels
+*/
 
-public class imageloader: MonoBehaviour {
+public static class imageLoader {
 	
 	private static readonly byte[,,] palleteTable = new byte[16, 3, 16] {
 	// Palette 0
@@ -104,25 +112,20 @@ public class imageloader: MonoBehaviour {
         { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, // G
         { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }  // B
     }	
-	}
+	};
 	
-	private string savefile, savefolder, filePath;
-	private string myDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-	private string[] binFiles;
-	private uint fileCount;
-	private ushort height, width;
-	private byte pallet, palletSet, palleteanddata;
-	private Texture2D texture;
-	private Color32[] pixels;
+	private static string savefile, savefolder, filePath;
+	private static string myDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+	private static string[] binFiles;
+	private static uint fileCount;
+	private static ushort height, width;
+	private static byte pallet, palletSet, palleteanddata;
+	private static Texture2D texture;
+	private static Color32[] pixels;
 	
 	private const ulong VelvetsoftHeart = 0x56454C534F4654D3UL;
 	
-		void Awake() {
-		savefolder = Path.Combine(myDocuments,"Velvetsoft\\ProjectTwilight\\images");
-
-    }
-	
-	private void loadfile() {
+	private static void loadfile() {
 		palleteanddata = 0;
 		
 		using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
@@ -131,7 +134,7 @@ public class imageloader: MonoBehaviour {
 				if (!getmetadata(reader))
    					 return;
 				
-				uint totalPixels = width * height;
+				uint totalPixels = (uint)(width * height);
 				pixels = new Color32[totalPixels];
 				
 				drawimage(reader);
@@ -141,58 +144,58 @@ public class imageloader: MonoBehaviour {
 		}
 	}
 	
-	private bool getmetadata(BinaryReader reader) {
-		if (VelvetsoftHeart != reader.ReadUInt64()) {
+	private static bool getmetadata(BinaryReader reader) {
+		if (VelvetsoftHeart != reader.ReadUInt64())
 			return false;
-		}
+		
 		height = reader.ReadUInt16();
 		width = reader.ReadUInt16();
+
+		if (width == 0 || height == 0)
+    		return false;
+		
 		byte temp = palleteanddata;
 		palletSet = (byte)(temp >> 4);
 
 		return true;
 	}
 	
-	private void drawimage(BinaryReader reader) {
+	private static void drawimage(BinaryReader reader) {
 		uint totalPixels = (uint)width * height, pixel = 1;
-		byte upperunder = 0, temp = 0;
 		
 		palleteanddata = (byte)(palleteanddata & 0x0F);
 		
-		pixels[0] =  new Color32(
+		pixels[0] = new Color32(
 			palleteTable[palletSet, 0, palleteanddata], 
 			palleteTable[palletSet, 1, palleteanddata],
 			palleteTable[palletSet, 2, palleteanddata],
 			255
-			);
+		);
 		
 		while(pixel < totalPixels) {
-			
-			if(upperunder == 0) {
-				temp = reader.ReadByte();
-			}
-			
-			pixels[pixel] =  new Color32(
-				palleteTable[palletSet, 0, getPixelColor(upperunder, temp)], 
-				palleteTable[palletSet,1, getPixelColor(upperunder, temp)],
-				palleteTable[palletSet, 2, getPixelColor(upperunder, temp)],
+			byte packedByte = reader.ReadByte();
+
+			// 1st Pixel: High Nibble (Upper 4 bits)
+			byte highNibble = (byte)(packedByte >> 4);
+			pixels[pixel] = new Color32(
+				palleteTable[palletSet, 0, highNibble],
+				palleteTable[palletSet, 1, highNibble],
+				palleteTable[palletSet, 2, highNibble],
 				255
-				);
-			
+			);
 			pixel++;
-			if(upperunder == 1) {
-				upperunder = 0;
-	
-			} else {
-				upperunder++;
+		
+			// 2nd Pixel: Low Nibble (Lower 4 bits)
+			if (pixel < totalPixels) {
+				byte lowNibble = (byte)(packedByte & 0x0F);
+				pixels[pixel] = new Color32(
+					palleteTable[palletSet, 0, lowNibble],
+					palleteTable[palletSet, 1, lowNibble],
+					palleteTable[palletSet, 2, lowNibble],
+					255
+				);
+				pixel++;
 			}
 		}
-	}
-		
-	private byte getPixelColor(byte upper_under, byte temp) {
-		if (upper_under == 0)
-			return (byte)(temp >> 4);
-
-		return (byte)(temp & 0x0F);
 	}
 }
