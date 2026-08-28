@@ -13,7 +13,7 @@ using System.IO;
 1 byte 2 pixels
 */
 
-public static class imageLoader {
+public class imageLoader {
 	
 	private static readonly byte[,,] palleteTable = new byte[16, 3, 16] {
 	// Palette 0
@@ -114,18 +114,18 @@ public static class imageLoader {
     }	
 	};
 	
-	private static string savefile, savefolder, filePath;
-	private static string myDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-	private static string[] binFiles;
-	private static uint fileCount;
-	private static ushort height, width;
-	private static byte pallet, palletSet, palleteanddata;
-	private static Texture2D texture;
-	private static Color32[] pixels;
+	private string savefile, savefolder, filePath;
+	private string myDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+	private string[] binFiles;
+	private uint fileCount;
+	private ushort height, width;
+	private byte pallet, palletSet, palleteanddata;
+	private Texture2D texture;
+	private Color32[] pixels;
 	
 	private const ulong VelvetsoftHeart = 0x56454C534F4654D3UL;
 	
-	private static void loadfile() {
+	private void loadfile() {
 		palleteanddata = 0;
 		
 		using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
@@ -144,7 +144,7 @@ public static class imageLoader {
 		}
 	}
 	
-	private static bool getmetadata(BinaryReader reader) {
+	private bool getmetadata(BinaryReader reader) {
 		if (VelvetsoftHeart != reader.ReadUInt64())
 			return false;
 		
@@ -160,7 +160,7 @@ public static class imageLoader {
 		return true;
 	}
 	
-	private static void drawimage(BinaryReader reader) {
+	private void drawimage(BinaryReader reader) {
 		uint totalPixels = (uint)width * height, pixel = 1;
 		
 		palleteanddata = (byte)(palleteanddata & 0x0F);
