@@ -130,13 +130,13 @@ public class imageLoader {
 		
 		using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
 			using (BinaryReader reader = new BinaryReader(fs)) {
-				palleteanddata = reader.ReadByte();
 				if (!getmetadata(reader))
    					 return;
 				
 				uint totalPixels = (uint)(width * height);
 				pixels = new Color32[totalPixels];
-				
+
+				palleteanddata = reader.ReadByte();
 				drawimage(reader);
 				texture.SetPixels32(pixels);
 				texture.Apply();
