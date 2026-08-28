@@ -106,15 +106,16 @@ public class imageloader: MonoBehaviour {
     }	
 	}
 	
-	private Texture2D texture;
-	private string savefile, savefolder;
+	private string savefile, savefolder, filePath;
 	private string myDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	private string[] binFiles;
 	private uint fileCount;
 	private ushort height, width;
-	private byte pallet, palletSet;
+	private byte pallet, palletSet, palleteanddata;
+	private Texture2D texture;
+	private Color32[] pixels;
 	
-	private readonly const ulong VelvetsoftHeart = 0x56454C534F4654D3UL;
+	private const ulong VelvetsoftHeart = 0x56454C534F4654D3UL;
 	
 		void Awake() {
 		savefolder = Path.Combine(myDocuments,"Velvetsoft\\ProjectTwilight\\images");
@@ -122,56 +123,61 @@ public class imageloader: MonoBehaviour {
     }
 	
 	private void loadfile() {
-		byte palleteanddata = 0;
+		palleteanddata = 0;
+		
 		using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
 			using (BinaryReader reader = new BinaryReader(fs)) {
-				palleteanddata += reader.byte();
-				getmetadata(reader);
+				palleteanddata = reader.ReadByte();
+				if (!getmetadata(reader))
+   					 return;
+				
+				uint totalPixels = width * height;
+				pixels = new Color32[totalPixels];
+				
 				drawimage(reader);
+				texture.SetPixels32(pixels);
 				texture.Apply();
 			}
 		}
 	}
 	
-	private void getmetadata(BinaryReader reader) {
-		if (VelvetsoftHeart != reader.ulong()) {
-			return(-1);
+	private bool getmetadata(BinaryReader reader) {
+		if (VelvetsoftHeart != reader.ReadUInt64()) {
+			return false;
 		}
-		height += reader.ushort();
-		width += reader.ushort();
+		height = reader.ReadUInt16();
+		width = reader.ReadUInt16();
 		byte temp = palleteanddata;
 		palletSet = (byte)(temp >> 4);
+
+		return true;
 	}
 	
 	private void drawimage(BinaryReader reader) {
-		uint tempx, tempy;
-		uint totalPixels = width * height, pixel = 0;
-		byte upperunder = 0, temp;
+		uint totalPixels = (uint)width * height, pixel = 1;
+		byte upperunder = 0, temp = 0;
 		
-		palleteanddata << 4;
-		palleteanddata >> 4;
+		palleteanddata = (byte)(palleteanddata & 0x0F);
 		
-		Texture2D.SetPixel(0, 0, new Color32(
-											palleteTable[palletSet, 1, palleteanddata], 
-											palleteTable[palletSet, 2, palleteanddata],
-											palleteTable[palletSet, 3, palleteanddata]
-											)
-										);
+		pixels[0] =  new Color32(
+			palleteTable[palletSet, 0, palleteanddata], 
+			palleteTable[palletSet, 1, palleteanddata],
+			palleteTable[palletSet, 2, palleteanddata],
+			255
+			);
 		
-		while(pixel <= totalpixel) {
-			ushort x = mathlib.Remainder(pixel, width);
-			ushort y = mathlib.Divider(pixel, width);
+		while(pixel < totalPixels) {
+			
 			if(upperunder == 0) {
-				temp = reader.byte();
-				
+				temp = reader.ReadByte();
 			}
 			
-			Texture2D.SetPixel(x, y, new Color32(
-											palleteTable[palletSet, 1, getPixelColor(upperunder, temp)], 
-											palleteTable[palletSet,2, getPixelColor(upperunder, temp)],
-											palleteTable[palletSet, 3, getPixelColor(upperunder, temp)]
-											)
-										);
+			pixels[pixel] =  new Color32(
+				palleteTable[palletSet, 0, getPixelColor(upperunder, temp)], 
+				palleteTable[palletSet,1, getPixelColor(upperunder, temp)],
+				palleteTable[palletSet, 2, getPixelColor(upperunder, temp)],
+				255
+				);
 			
 			pixel++;
 			if(upperunder == 1) {
@@ -183,7 +189,7 @@ public class imageloader: MonoBehaviour {
 		}
 	}
 		
-	private byte getPixelColor(byte upper_under, byte temp)){
+	private byte getPixelColor(byte upper_under, byte temp) {
 		if (upper_under == 0)
 			return (byte)(temp >> 4);
 
